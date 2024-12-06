@@ -34,7 +34,7 @@ public class PortManager
     {
         List<string> tempPost = new List<string>();
         bool mark = false;
-        for (int i = 1; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
             try
             {
@@ -189,36 +189,35 @@ public class PortManager
             sb.AppendFormat("{0:x2}" + "  ", data[i]);
         }
         Debug.Log(sb.ToString());
+        HandleData(data);
+    }
+
+    private void HandleData(byte[] data)
+    {
+        int playerID;
 
         if (data.Length >= 6)
         {
-            if (data[0] == 0xB5 && data[1] == 0xB6)
+            if (data[0] == 0xB5 && data[1] == 0xB6 && data[2] == 0x03)
             {
                 // 来自IO板的数据
-                Debug.Log(data[2]);
-                switch (data[2])
+                switch (data[3])
                 {
                     case 0x03:
                         // 投币信号
-                        if (data[3] == 0x03)
-                        {
-                            int playerID = data[4];
-                            int coinCount = data[5];
-                            Debug.Log($"投币信号：玩家 {playerID} 投币 {coinCount} 个");
-                        }
+                        playerID = data[4];
+                        int coinCount = data[5];
+                        Debug.Log($"投币信号：玩家 {playerID} 投币 {coinCount} 个");
                         break;
                     case 0x06:
                         // 退票信号
-                        if (data[3] == 0x06)
-                        {
-                            int playerID = data[4];
-                            int ticketCount = data[5];
-                            Debug.Log($"退票信号：玩家 {playerID} 退票 {ticketCount} 张");
-                        }
+                        playerID = data[4];
+                        int ticketCount = data[5];
+                        Debug.Log($"退票信号：玩家 {playerID} 退票 {ticketCount} 张");
                         break;
                     case 0x07:
                         // 系统按键信号
-                        if (data[3] == 0x07 && data[4] == 0x00)
+                        if (data[4] == 0x00)
                         {
                             int keyData = data[5];
                             Debug.Log($"系统按键信号：{GetSystemKeyName(keyData)}");
@@ -226,21 +225,17 @@ public class PortManager
                         break;
                     case 0x17:
                         // 玩家按键信号
-                        if (data[3] == 0x17)
-                        {
-                            int playerID = data[4];
-                            int buttonData = data[5];
-                            Debug.Log($"玩家按键信号：玩家 {playerID} 按下按钮 {GetPlayerButtonName(buttonData)}");
-                        }
+                        playerID = data[4];
+                        int buttonData = data[5];
+                        Debug.Log($"玩家按键信号：玩家 {playerID} 按下按钮 {GetPlayerButtonName(buttonData)}");
+
                         break;
                     case 0x0E:
                         // 故障返回
-                        if (data[3] == 0x0E)
-                        {
-                            int playerID = data[4];
-                            int faultData = data[5];
-                            Debug.Log($"故障返回：玩家 {playerID} 设备故障 - {GetFaultDescription(faultData)}");
-                        }
+                        playerID = data[4];
+                        int faultData = data[5];
+                        Debug.Log($"故障返回：玩家 {playerID} 设备故障 - {GetFaultDescription(faultData)}");
+
                         break;
                 }
             }
@@ -252,7 +247,7 @@ public class PortManager
                     // 控台按键灯控制
                     if (data.Length == 6)
                     {
-                        int playerID = data[3];
+                        playerID = data[3];
                         int lightMode = data[4];
                         Debug.Log($"控台按键灯控制：玩家 {playerID} 控台按键灯设置为 {GetLightModeName(lightMode)}");
                     }
